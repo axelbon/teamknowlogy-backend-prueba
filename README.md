@@ -13,21 +13,21 @@ npm install
 ## Uso
 
 ### Local
-Iniciar servidor, el servidor arrancara en el puerto:  3100
+Iniciar servidor, el servidor arrancara en el puerto:  3300
 
 ```bash
 node server.js
 ```
 Para usar la api localmente deberás acceder con los siguiente endpoints:
 
-* http://localhost:3100/send-email
-* http://localhost:3100/mutation
+* http://localhost:3300/send-email
+* http://localhost:3300/mutation
 
 ### AWS Api
 
 Para usar la api deberas acceder a los siguiente endpoints:
-* http://ec2-13-58-229-58.us-east-2.compute.amazonaws.com:3100/send-email
-* http://ec2-13-58-229-58.us-east-2.compute.amazonaws.com:3100/mutation
+* http://ec2-13-58-229-58.us-east-2.compute.amazonaws.com:3300/send-email
+* http://ec2-13-58-229-58.us-east-2.compute.amazonaws.com:3300/mutation
 
 
 ### Endpoints

@@ -526,7 +526,7 @@ const hasMutation = (array) => {
 };
 
 
-const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 3100;
+const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 3300;
 const server = app.listen(port, () => {
     console.log('Server listening on port ' + port);
 });
