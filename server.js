@@ -476,7 +476,7 @@ app.post('/send-email', (req, res) => {
             console.log(err, err.stack); // an error occurred\
             res.status(500).send('Error al enviar el corre', err.message);
         }
-        res.status(200).send('Correo enviado corectamente');
+        res.status(200).json({res:'Correo enviado corectamente'});
     });
 
 
