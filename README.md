@@ -27,7 +27,7 @@ Para usar la api localmente deberás acceder con los siguiente endpoints:
 
 Para usar la api deberas acceder a los siguiente endpoints:
 * http://ec2-3-15-140-76.us-east-2.compute.amazonaws.com:3300/send-email
-* http://ec2-3-15-140-76.us-east-2.compute.amazonaws.com.com:3300/mutation
+* http://ec2-3-15-140-76.us-east-2.compute.amazonaws.com:3300/mutation
 
 
 ### Endpoints
