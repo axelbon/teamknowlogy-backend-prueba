@@ -35,5 +35,5 @@ Para usar la api deberas acceder a los siguiente endpoints:
 -------------  | JSON body example | Response | 
 --- | ---  | --- |
 send-email | { "emailAddress": "email@example.com" } | status: enviado / error |
-mutation| { "dna": ["ATGCGA","CAGTGC","TTATGT","AGAAGG","CCCCTA","TCACTG"] } | status: mutacion / no mutacion |
+mutation| { "dna": ["ATGCGA","CAGTGC","TTATGT","AGAAGG","CCCCTA","TCACTG"] } | {"mutacion": true / false, "mutaciones": { "vertical": true / false, "horizontal": true / false,        "diagonalIzqDer": true / false, "diagonalDerIzq": true / false } } |
 
