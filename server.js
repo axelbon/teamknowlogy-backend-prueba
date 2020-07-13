@@ -5,7 +5,6 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 var AWS = require('aws-sdk');
-// Set the region 
 AWS.config.update({
     region: 'us-east-2',
     credentials: new AWS.SharedIniFileCredentials()
@@ -485,10 +484,11 @@ app.post('/send-email', (req, res) => {
 app.post('/mutation', (req, res) => {
     if (!req.body.dna) res.status(500).send('Necesita especificar dna');
 
-    const horizontalMutation = hasMutation(req.body.dna);
+    const horizontalMutation = hasMutation(req.body.dna.join(''));
     const verticalMutation = hasMutation(convertVertical(req.body.dna));
+    const diagonalIzDer = hasMutation(convertDiagolanIzqDer(req.body.dna));
 
-    res.status(200).json({"horizontal": horizontalMutation, "vertical": verticalMutation});
+    res.status(200).json({"horizontal": horizontalMutation, "vertical": verticalMutation, "diagonalIzqDer": diagonalIzDer});
 });
 
 
@@ -499,14 +499,32 @@ const convertVertical = (array) => {
             returnArray[i] = returnArray[i] + element.substring(i, i + 1);
         }
     });
-    return returnArray;
+    return returnArray.join('');
+};
+
+const convertDiagolanIzqDer = (array) => {
+    var Ylength = array.length;
+    var Xlength = array[0].length;
+    var maxLength = Math.max(Xlength, Ylength);
+    //var temp;
+    var temporal = '';
+    for (var k = 0; k <= 2 * (maxLength - 1); ++k) {
+        //temp = [];
+        for (var y = Ylength - 1; y >= 0; --y) {
+            var x = k - y;
+            if (x >= 0 && x < Xlength) {
+                temporal += array[x][y];
+            }
+        }
+    }
+    return temporal;
 };
 
 
-const hasMutation = (array) => {
+const hasMutation = (str) => {
+    console.log(str);
     //expresion regularz
     const regex = /(.)\1{3}/mg;
-    const str = array.join('');
     let m;
     let found = false;
 
