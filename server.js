@@ -475,7 +475,7 @@ app.post('/send-email', (req, res) => {
             console.log(err, err.stack); // an error occurred\
             res.status(500).send('Error al enviar el corre', err.message);
         }
-        res.status(200).json({res:'Correo enviado corectamente'});
+        res.status(200).json({ res: 'Correo enviado corectamente' });
     });
 
 
@@ -484,11 +484,22 @@ app.post('/send-email', (req, res) => {
 app.post('/mutation', (req, res) => {
     if (!req.body.dna) res.status(500).send('Necesita especificar dna');
 
-    const horizontalMutation = hasMutation(req.body.dna.join(''));
-    const verticalMutation = hasMutation(convertVertical(req.body.dna));
-    const diagonalIzDer = hasMutation(convertDiagolanIzqDer(req.body.dna));
+    const { dna } = req.body;
 
-    res.status(200).json({"horizontal": horizontalMutation, "vertical": verticalMutation, "diagonalIzqDer": diagonalIzDer});
+    var mutations = 0;
+
+    mutations += hasMutation(dna.join(''));
+    mutations += hasMutation(convertVertical(dna));
+    mutations += hasMutation(convertDiagolan(dna));
+    const arrayDerIzq = revertArray(dna);
+    mutations += hasMutation(convertDiagolan(arrayDerIzq));
+
+    if (mutations && mutations < 2) {
+        res.status(403).end('No tiene mutacion');
+    }else{   
+        res.status(200).json({ "hasMutation": true });
+    }
+
 });
 
 
@@ -502,7 +513,7 @@ const convertVertical = (array) => {
     return returnArray.join('');
 };
 
-const convertDiagolanIzqDer = (array) => {
+const convertDiagolan = (array) => {
     var Ylength = array.length;
     var Xlength = array[0].length;
     var maxLength = Math.max(Xlength, Ylength);
@@ -520,13 +531,31 @@ const convertDiagolanIzqDer = (array) => {
     return temporal;
 };
 
+const reverseString = (str) => {
+    // converitir el string en array
+    var splitString = str.split("");
+
+    // usa metodo reverse para "voltear" el array y crear uno nuevo con el resultado
+    var reverseArray = splitString.reverse();
+
+    //retorna el resultado de reverse() con el metodo join('') (el cual convierte el array en string) para regresar un string
+    return reverseArray.join(''); // "olleh"
+}
+
+const revertArray = (array) => {
+    let newArray = [];
+    array.forEach((el, i) => {
+        newArray[i] = reverseString(el);
+    });
+    return newArray;
+};
+
 
 const hasMutation = (str) => {
-    console.log(str);
     //expresion regularz
     const regex = /(.)\1{3}/mg;
     let m;
-    let found = false;
+    let found = 0;
 
     while ((m = regex.exec(str)) !== null) {
         //evita loops infinitos
@@ -536,7 +565,7 @@ const hasMutation = (str) => {
 
         //para saber si existe un resultado
         m.forEach((match, groupIndex) => {
-            found = true;
+            found = 1;
         });
     }
 
@@ -548,5 +577,3 @@ const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 
 const server = app.listen(port, () => {
     console.log('Server listening on port ' + port);
 });
-
-
