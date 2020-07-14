@@ -1,5 +1,6 @@
 var nodemailer = require('nodemailer');
 var express = require('express');
+var db = require('./db_connection');
 
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -482,26 +483,76 @@ app.post('/send-email', (req, res) => {
 });
 
 app.post('/mutation', (req, res) => {
-    if (!req.body.dna) res.status(500).send('Necesita especificar dna');
-
     const { dna } = req.body;
+    var regexValidation = /^[ATCG]+$/;
+    var dnaJoin = dna.join('');
+    if (!req.body.dna) res.status(500).send('Necesita especificar dna');
+    if (!dnaJoin.match(regexValidation)) res.status(500).send('La cadena de dna no es valida');
 
-    var mutations = 0;
+    var mutationsArray = {};
 
-    mutations += hasMutation(dna.join(''));
-    mutations += hasMutation(convertVertical(dna));
-    mutations += hasMutation(convertDiagolan(dna));
+    var count = 0;
+
+    mutationsArray['vertical'] = hasMutation(dnaJoin);
+    mutationsArray['horizontal'] = hasMutation(convertVertical(dna));
+    mutationsArray['diagonalIzqDer'] = hasMutation(convertDiagolan(dna));
     const arrayDerIzq = revertArray(dna);
-    mutations += hasMutation(convertDiagolan(arrayDerIzq));
+    mutationsArray['diagonalDerIzq'] = hasMutation(convertDiagolan(arrayDerIzq));
 
-    if (mutations && mutations < 2) {
-        res.status(403).end('No tiene mutacion');
-    }else{   
-        res.status(200).json({ "hasMutation": true });
+    for (var k in mutationsArray) {
+        if (mutationsArray[k]) count++;
+    }
+
+    db.query("SELECT * FROM tk_mutations_db.stats WHERE adn = ? ;", [dnaJoin], (err, result, fields) => {
+        if (err) throw err;
+        if (result.length <= 0) {
+            db.query("INSERT INTO tk_mutations_db.stats(id, adn, has_mutation) VALUES(?, ?, ?)", ['', dnaJoin, (count > 2 ? 1 : 0)], (err, result) => {
+                if (err) throw err;
+                console.log('inserted');
+            });
+        } else {
+            console.log('already in the system');
+        }
+    });
+
+    if (count && (count > 1)) {
+        res.status(200).json({ "mutacion": true, "mutations": mutationsArray });
+    } else {
+        res.status(403).json({ 'mutacion': false, 'mutations': mutationsArray });
     }
 
 });
 
+app.get('/stats', (req, res) => {
+    db.query("SELECT * FROM tk_mutations_db.stats;", (err, result) => {
+        //variable para 
+        var st = {'count_mutations':0, 'count_no_mutation': 0, 'ratio': 0};
+        if (err) throw err;
+        if (result.length > 0) {
+            result.forEach(el => {
+                if(el.has_mutation == 1){
+                    st['count_mutations']++;
+                }else{
+                    st['count_no_mutation']++;
+                }
+            });
+        } else {
+            console.log('no se han registrado nada');
+        }
+
+        if(st['count_mutations'] == 0){
+            st['ratio'] = -st['count_no_mutation'];
+        }else if(st['count_no_mutation'] == 0){
+            st['ratio'] = st['count_mutations'];
+        }else{
+            st['ratio'] = st['count_mutations'] / st['count_no_mutation'];
+            if(st['count_no_mutation'] < st['count_mutations']){
+                st['ratio'] = st['ratio'] * -1;
+            }
+        }
+        res.status(200).send({'stats' : st});
+    }); 
+});
 
 const convertVertical = (array) => {
     var returnArray = ["", "", "", "", "", ""];
@@ -551,11 +602,11 @@ const revertArray = (array) => {
 };
 
 
-const hasMutation = (str) => {
+const hasMutation = (str, arr) => {
     //expresion regularz
     const regex = /(.)\1{3}/mg;
     let m;
-    let found = 0;
+    let found = false;
 
     while ((m = regex.exec(str)) !== null) {
         //evita loops infinitos
@@ -565,7 +616,7 @@ const hasMutation = (str) => {
 
         //para saber si existe un resultado
         m.forEach((match, groupIndex) => {
-            found = 1;
+            found = true;
         });
     }
 
@@ -575,5 +626,7 @@ const hasMutation = (str) => {
 
 const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 3300;
 const server = app.listen(port, () => {
+
     console.log('Server listening on port ' + port);
+
 });
